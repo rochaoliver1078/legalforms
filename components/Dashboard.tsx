@@ -183,14 +183,14 @@ export default function Dashboard({
               <div className="form-card-select" onClick={(e) => { e.stopPropagation(); toggleSelect(f.id); }}>
                 {selectedIds.includes(f.id) ? <CheckSquare size={16} style={{ color: "var(--primary)" }} /> : <Square size={16} />}
               </div>
-              <div className="form-card-actions" onClick={(e) => e.stopPropagation()}>
-                <button className="btn btn--icon-sm btn--ghost" title="Editar" onClick={() => onEditForm(f.id)}><Edit3 size={14} /></button>
-                <button className="btn btn--icon-sm btn--ghost" title="Preencher" onClick={() => onFillForm(f.id)}><Eye size={14} /></button>
-                <button className="btn btn--icon-sm btn--ghost" title="Respostas" onClick={() => onViewResponses(f.id)}><BarChart3 size={14} /></button>
-                <button className="btn btn--icon-sm btn--ghost" title="Duplicar" onClick={() => onDuplicateForm(f.id)}><Copy size={14} /></button>
-                <button className="btn btn--icon-sm btn--ghost" title="Compartilhar" onClick={() => onShareForm(f.id)}><Share2 size={14} /></button>
-                <button className="btn btn--icon-sm btn--ghost" title="Arquivar" onClick={() => onArchiveForm(f.id)}><Archive size={14} /></button>
-                <button className="btn btn--icon-sm btn--ghost" title="Excluir" onClick={() => onDeleteForm(f.id)} style={{ color: "var(--danger)" }}><Trash2 size={14} /></button>
+              <div className="form-card-actions">
+                <button className="btn btn--icon-sm btn--ghost" title="Editar" onClick={(e) => { e.stopPropagation(); onEditForm(f.id); }}><Edit3 size={14} /></button>
+                <button className="btn btn--icon-sm btn--ghost" title="Preencher" onClick={(e) => { e.stopPropagation(); onFillForm(f.id); }}><Eye size={14} /></button>
+                <button className="btn btn--icon-sm btn--ghost" title="Respostas" onClick={(e) => { e.stopPropagation(); onViewResponses(f.id); }}><BarChart3 size={14} /></button>
+                <button className="btn btn--icon-sm btn--ghost" title="Duplicar" onClick={(e) => { e.stopPropagation(); onDuplicateForm(f.id); }}><Copy size={14} /></button>
+                <button className="btn btn--icon-sm btn--ghost" title="Compartilhar" onClick={(e) => { e.stopPropagation(); onShareForm(f.id); }}><Share2 size={14} /></button>
+                <button className="btn btn--icon-sm btn--ghost" title="Arquivar" onClick={(e) => { e.stopPropagation(); onArchiveForm(f.id); }}><Archive size={14} /></button>
+                <button className="btn btn--icon-sm btn--ghost" title="Excluir" onClick={(e) => { e.stopPropagation(); onDeleteForm(f.id); }} style={{ color: "var(--danger)", position: "relative", zIndex: 10 }}><Trash2 size={14} /></button>
               </div>
               <div className="form-card-icon" style={{ background: f.color + "18", color: f.color }}>{f.icon}</div>
               <div className="form-card-name">{f.name}</div>
@@ -237,12 +237,12 @@ export default function Dashboard({
               </div>
               {(f.tags || []).map((t) => <span key={t} className="tag-badge">{t}</span>)}
               <div className="form-list-badge">{f.response_count || 0} resp.</div>
-              <div className="form-list-actions" onClick={(e) => e.stopPropagation()}>
-                <button className="btn btn--icon-sm btn--ghost" onClick={() => onEditForm(f.id)}><Edit3 size={14} /></button>
-                <button className="btn btn--icon-sm btn--ghost" onClick={() => onDuplicateForm(f.id)}><Copy size={14} /></button>
-                <button className="btn btn--icon-sm btn--ghost" onClick={() => onShareForm(f.id)}><Share2 size={14} /></button>
-                <button className="btn btn--icon-sm btn--ghost" onClick={() => onArchiveForm(f.id)}><Archive size={14} /></button>
-                <button className="btn btn--icon-sm btn--ghost" onClick={() => onDeleteForm(f.id)} style={{ color: "var(--danger)" }}><Trash2 size={14} /></button>
+              <div className="form-list-actions">
+                <button className="btn btn--icon-sm btn--ghost" onClick={(e) => { e.stopPropagation(); onEditForm(f.id); }}><Edit3 size={14} /></button>
+                <button className="btn btn--icon-sm btn--ghost" onClick={(e) => { e.stopPropagation(); onDuplicateForm(f.id); }}><Copy size={14} /></button>
+                <button className="btn btn--icon-sm btn--ghost" onClick={(e) => { e.stopPropagation(); onShareForm(f.id); }}><Share2 size={14} /></button>
+                <button className="btn btn--icon-sm btn--ghost" onClick={(e) => { e.stopPropagation(); onArchiveForm(f.id); }}><Archive size={14} /></button>
+                <button className="btn btn--icon-sm btn--ghost" onClick={(e) => { e.stopPropagation(); onDeleteForm(f.id); }} style={{ color: "var(--danger)", position: "relative", zIndex: 10 }}><Trash2 size={14} /></button>
               </div>
             </div>
           ))}
