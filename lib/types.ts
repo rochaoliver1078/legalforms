@@ -127,3 +127,42 @@ export interface HistoryEntry {
   fields: FormField[];
   timestamp: number;
 }
+
+// v3 — Client Panel
+export type ProcessStatus = 'pending' | 'docs_received' | 'analyzing' | 'filed' | 'completed';
+
+export interface Client {
+  id: string;
+  name: string;
+  cnpj?: string;
+  cpf?: string;
+  email: string;
+  phone?: string;
+  contact_name?: string;
+  notes?: string;
+  process_status: ProcessStatus;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ClientSubmission {
+  client_id: string;
+  submission: Submission;
+  form: Form;
+}
+
+export const PROCESS_STATUS_LABELS: Record<ProcessStatus, string> = {
+  pending: 'Aguardando docs',
+  docs_received: 'Docs recebidos',
+  analyzing: 'Em análise',
+  filed: 'Protocolado',
+  completed: 'Concluído',
+};
+
+export const PROCESS_STATUS_COLORS: Record<ProcessStatus, string> = {
+  pending: '#f59e0b',
+  docs_received: '#3b82f6',
+  analyzing: '#8b5cf6',
+  filed: '#06b6d4',
+  completed: '#10b981',
+};

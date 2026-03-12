@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect, useCallback } from "react";
-import { Form, FormVersion } from "@/lib/types";
+import { Form, Client } from "@/lib/types";
 import { FORM_TEMPLATES } from "@/lib/field-definitions";
 import { uid } from "@/lib/utils";
 import Topbar from "@/components/Topbar";
@@ -9,15 +9,28 @@ import Builder from "@/components/Builder";
 import FillMode from "@/components/FillMode";
 import ShareModal from "@/components/ShareModal";
 import Responses from "@/components/Responses";
+import Clients from "@/components/Clients";
+import Kanban from "@/components/Kanban";
 
 const api = {
   async getForms(): Promise<Form[]> { const r = await fetch("/api/forms"); return r.ok ? r.json() : []; },
   async createForm(d: Partial<Form>): Promise<Form | null> { const r = await fetch("/api/forms", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(d) }); return r.ok ? r.json() : null; },
   async updateForm(d: Partial<Form> & { id: string }): Promise<Form | null> { const r = await fetch("/api/forms", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(d) }); return r.ok ? r.json() : null; },
   async deleteForm(id: string): Promise<void> { await fetch(`/api/forms?id=${id}`, { method: "DELETE" }); },
+  async getNewSubmissionsCount(): Promise<number> {
+    try {
+      const r = await fetch("/api/submissions");
+      if (!r.ok) return 0;
+      const subs = await r.json();
+      if (!Array.isArray(subs)) return 0;
+      // Count subs from last 24h
+      const cutoff = Date.now() - 24 * 60 * 60 * 1000;
+      return subs.filter((s: any) => new Date(s.submitted_at).getTime() > cutoff).length;
+    } catch { return 0; }
+  }
 };
 
-type Page = "dashboard" | "builder" | "fill" | "done" | "responses";
+type Page = "dashboard" | "builder" | "fill" | "done" | "responses" | "clients" | "kanban";
 
 export default function LegalFormsPage() {
   const [page, setPage] = useState<Page>("dashboard");
@@ -28,6 +41,7 @@ export default function LegalFormsPage() {
   const [search, setSearch] = useState("");
   const [showShare, setShowShare] = useState(false);
   const [toast, setToast] = useState("");
+  const [newSubsCount, setNewSubsCount] = useState(0);
 
   const curForm = forms.find((f) => f.id === curId) || null;
   let saveTimer: ReturnType<typeof setTimeout> | null = null;
@@ -36,7 +50,9 @@ export default function LegalFormsPage() {
   const goTo = (pg: Page, id?: string) => { setPage(pg); if (id) setCurId(id); };
 
   useEffect(() => {
-    api.getForms().then((d) => { setForms(Array.isArray(d) ? d : []); setLoading(false); }).catch(() => setLoading(false));
+    Promise.all([api.getForms(), api.getNewSubmissionsCount()])
+      .then(([f, count]) => { setForms(Array.isArray(f) ? f : []); setNewSubsCount(count); setLoading(false); })
+      .catch(() => setLoading(false));
   }, []);
 
   // Keyboard shortcuts
@@ -116,7 +132,8 @@ export default function LegalFormsPage() {
     <>
       <Topbar page={page} formName={page === "builder" ? curForm?.name : undefined} saving={saving}
         onBack={() => goTo("dashboard")} onPreview={() => curId && goTo("fill", curId)} onShare={() => setShowShare(true)}
-        onCreate={() => handleCreateForm()} onNameChange={(name) => handleUpdateForm({ name })} />
+        onCreate={() => handleCreateForm()} onNameChange={(name) => handleUpdateForm({ name })}
+        onClients={() => goTo("clients")} onKanban={() => goTo("kanban")} newSubsCount={newSubsCount} />
 
       {page === "dashboard" && (
         <Dashboard forms={forms} search={search} onSearchChange={setSearch} onCreateForm={handleCreateForm} onEditForm={(id) => goTo("builder", id)}
@@ -126,7 +143,7 @@ export default function LegalFormsPage() {
 
       {page === "builder" && curForm && <Builder form={curForm} onUpdateForm={handleUpdateForm} />}
       {page === "fill" && curForm && <FillMode form={curForm} onDone={() => { goTo("done"); showToast("Enviado!"); }} onBack={() => goTo("dashboard")} />}
-      
+
       {page === "done" && (
         <div className="done-wrap">
           <div className="done-card">
@@ -142,6 +159,8 @@ export default function LegalFormsPage() {
       )}
 
       {page === "responses" && curForm && <Responses form={curForm} onBack={() => goTo("dashboard")} />}
+      {page === "clients" && <Clients onBack={() => goTo("dashboard")} forms={forms} onViewForm={(id) => goTo("responses", id)} />}
+      {page === "kanban" && <Kanban onBack={() => goTo("dashboard")} onSelectClient={() => goTo("clients")} />}
       {showShare && curForm && <ShareModal form={curForm} onClose={() => setShowShare(false)} onUpdateEmails={(emails) => handleUpdateForm({ emails })} />}
       {toast && <div className="toast-container"><div className="toast">{toast}</div></div>}
     </>

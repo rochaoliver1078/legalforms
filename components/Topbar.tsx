@@ -1,5 +1,5 @@
 "use client";
-import { Save, Eye, Share2, Plus, ArrowLeft, Loader2 } from "lucide-react";
+import { Save, Eye, Share2, Plus, ArrowLeft, Loader2, Building2, LayoutDashboard, Bell } from "lucide-react";
 
 interface TopbarProps {
   page: string;
@@ -10,9 +10,12 @@ interface TopbarProps {
   onShare?: () => void;
   onCreate?: () => void;
   onNameChange?: (name: string) => void;
+  onClients?: () => void;
+  onKanban?: () => void;
+  newSubsCount?: number;
 }
 
-export default function Topbar({ page, formName, saving, onBack, onPreview, onShare, onCreate, onNameChange }: TopbarProps) {
+export default function Topbar({ page, formName, saving, onBack, onPreview, onShare, onCreate, onNameChange, onClients, onKanban, newSubsCount }: TopbarProps) {
   return (
     <div className="topbar">
       <div className="topbar-brand" onClick={onBack}>
@@ -20,45 +23,30 @@ export default function Topbar({ page, formName, saving, onBack, onPreview, onSh
       </div>
       <div className="topbar-center">
         {page === "builder" && formName !== undefined && (
-          <input
-            className="topbar-input"
-            value={formName}
-            onChange={(e) => onNameChange?.(e.target.value)}
-            placeholder="Nome do formulário"
-          />
+          <input className="topbar-input" value={formName} onChange={(e) => onNameChange?.(e.target.value)} placeholder="Nome do formulário" />
         )}
       </div>
       <div className="topbar-right">
         {page === "builder" && (
           <>
-            {saving && (
-              <span className="topbar-save-indicator">
-                <Loader2 size={14} style={{ animation: "spin .6s linear infinite" }} /> Salvando...
-              </span>
-            )}
-            <button className="topbar-btn" onClick={onPreview}>
-              <Eye size={14} /> Preencher
-            </button>
-            <button className="topbar-btn" onClick={onShare}>
-              <Share2 size={14} /> Compartilhar
-            </button>
+            {saving && <span className="topbar-save-indicator"><Loader2 size={14} style={{ animation: "spin .6s linear infinite" }} /> Salvando...</span>}
+            <button className="topbar-btn" onClick={onPreview}><Eye size={14} /> Preencher</button>
+            <button className="topbar-btn" onClick={onShare}><Share2 size={14} /> Compartilhar</button>
           </>
         )}
-        {page === "responses" && (
-          <button className="topbar-btn" onClick={onBack}>
-            <ArrowLeft size={14} /> Voltar
-          </button>
-        )}
+        {page === "responses" && <button className="topbar-btn" onClick={onBack}><ArrowLeft size={14} /> Voltar</button>}
         {page === "dashboard" && (
-          <button className="topbar-btn topbar-btn--filled" onClick={onCreate}>
-            <Plus size={14} /> Criar
-          </button>
+          <>
+            <button className="topbar-btn" onClick={onClients}><Building2 size={14} /> Clientes</button>
+            <button className="topbar-btn" onClick={onKanban}><LayoutDashboard size={14} /> Kanban</button>
+            {(newSubsCount || 0) > 0 && (
+              <span className="topbar-badge">{newSubsCount}</span>
+            )}
+            <button className="topbar-btn topbar-btn--filled" onClick={onCreate}><Plus size={14} /> Criar</button>
+          </>
         )}
-        {(page === "fill" || page === "done") && (
-          <button className="topbar-btn" onClick={onBack}>
-            <ArrowLeft size={14} /> Meus Formulários
-          </button>
-        )}
+        {(page === "fill" || page === "done") && <button className="topbar-btn" onClick={onBack}><ArrowLeft size={14} /> Meus Formulários</button>}
+        {(page === "clients" || page === "kanban") && <button className="topbar-btn" onClick={onBack}><ArrowLeft size={14} /> Dashboard</button>}
       </div>
     </div>
   );

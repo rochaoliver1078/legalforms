@@ -316,6 +316,18 @@ export default function Builder({ form, onUpdateForm }: BuilderProps) {
                 <option value="sharp">Retas</option><option value="rounded">Arredondadas</option><option value="pill">Pílula</option>
               </select>
             </div>
+            <hr style={{ border: "none", borderTop: "1px solid var(--border-light)", margin: "12px 0" }} />
+            <div className="form-group">
+              <label className="form-label">🖼️ Logo (URL)</label>
+              <input className="input" placeholder="https://... (PNG/SVG)" value={theme.logoUrl || ""} onChange={(e) => setTheme("logoUrl", e.target.value)} />
+              {theme.logoUrl && <img src={theme.logoUrl} alt="Preview" style={{ height: 32, objectFit: "contain", marginTop: 8 }} />}
+            </div>
+            <div className="form-group">
+              <label className="form-label">🏔️ Capa (URL)</label>
+              <input className="input" placeholder="https://... (banner)" value={theme.coverUrl || ""} onChange={(e) => setTheme("coverUrl", e.target.value)} />
+              {theme.coverUrl && <img src={theme.coverUrl} alt="Preview" style={{ width: "100%", height: 60, objectFit: "cover", borderRadius: 6, marginTop: 8 }} />}
+            </div>
+            <div style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 8 }}>Logo e capa aparecem no formulário público.</div>
           </div>
         )}
 
