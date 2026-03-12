@@ -1,6 +1,6 @@
 "use client";
-import { useState, useEffect } from "react";
-import { Form } from "@/lib/types";
+import { useState, useEffect, useCallback } from "react";
+import { Form, FormVersion } from "@/lib/types";
 import { FORM_TEMPLATES } from "@/lib/field-definitions";
 import { uid } from "@/lib/utils";
 import Topbar from "@/components/Topbar";
@@ -10,7 +10,6 @@ import FillMode from "@/components/FillMode";
 import ShareModal from "@/components/ShareModal";
 import Responses from "@/components/Responses";
 
-// API helpers
 const api = {
   async getForms(): Promise<Form[]> { const r = await fetch("/api/forms"); return r.ok ? r.json() : []; },
   async createForm(d: Partial<Form>): Promise<Form | null> { const r = await fetch("/api/forms", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(d) }); return r.ok ? r.json() : null; },
@@ -23,64 +22,64 @@ type Page = "dashboard" | "builder" | "fill" | "done" | "responses";
 export default function LegalFormsPage() {
   const [page, setPage] = useState<Page>("dashboard");
   const [forms, setForms] = useState<Form[]>([]);
-  const [currentFormId, setCurrentFormId] = useState<string | null>(null);
+  const [curId, setCurId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [search, setSearch] = useState("");
   const [showShare, setShowShare] = useState(false);
-  const [showCreateModal, setShowCreateModal] = useState(false);
-  const [newFormName, setNewFormName] = useState("");
   const [toast, setToast] = useState("");
 
-  const currentForm = forms.find((f) => f.id === currentFormId) || null;
+  const curForm = forms.find((f) => f.id === curId) || null;
   let saveTimer: ReturnType<typeof setTimeout> | null = null;
 
-  const showToast = (msg: string) => { setToast(msg); setTimeout(() => setToast(""), 3000); };
+  const showToast = (m: string) => { setToast(m); setTimeout(() => setToast(""), 3000); };
+  const goTo = (pg: Page, id?: string) => { setPage(pg); if (id) setCurId(id); };
 
-  // Load forms
   useEffect(() => {
-    api.getForms().then((data) => { setForms(Array.isArray(data) ? data : []); setLoading(false); }).catch(() => setLoading(false));
+    api.getForms().then((d) => { setForms(Array.isArray(d) ? d : []); setLoading(false); }).catch(() => setLoading(false));
   }, []);
 
-  const goTo = (pg: Page, formId?: string) => {
-    setPage(pg);
-    if (formId) setCurrentFormId(formId);
-  };
+  // Keyboard shortcuts
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === "s") { e.preventDefault(); showToast("Salvo automaticamente!"); }
+      if ((e.ctrlKey || e.metaKey) && e.key === "p") { e.preventDefault(); if (curId && page === "builder") goTo("fill", curId); }
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  });
 
-  // --- Form CRUD ---
   const handleCreateForm = async (templateId?: string) => {
-    let formData: Partial<Form> = { name: "Novo Formulário" };
+    let data: Partial<Form> = { name: "Novo Formulário", status: "active", tags: [], version: 1 };
     if (templateId) {
       const tpl = FORM_TEMPLATES.find((t) => t.id === templateId);
       if (tpl) {
-        // Re-generate IDs for template fields
         const fields = tpl.fields.map((f) => ({ ...f, id: uid() }));
-        formData = { name: tpl.name, icon: tpl.icon, color: tpl.color, fields };
+        data = { ...data, name: tpl.name, icon: tpl.icon, color: tpl.color, fields };
       }
     }
-    const result = await api.createForm(formData);
-    if (result) {
-      setForms((p) => [{ ...result, response_count: 0 }, ...p]);
-      setCurrentFormId(result.id);
-      setPage("builder");
-      showToast("Formulário criado!");
-    }
+    const result = await api.createForm(data);
+    if (result) { setForms((p) => [{ ...result, response_count: 0 }, ...p]); setCurId(result.id); setPage("builder"); showToast("Formulário criado!"); }
   };
 
   const handleUpdateForm = (updates: Partial<Form>) => {
-    if (!currentFormId) return;
-    setForms((p) => p.map((f) => (f.id === currentFormId ? { ...f, ...updates } : f)));
-    // Debounced API save
+    if (!curId) return;
+    setForms((p) => p.map((f) => (f.id === curId ? { ...f, ...updates } : f)));
     setSaving(true);
     if (saveTimer) clearTimeout(saveTimer);
     saveTimer = setTimeout(async () => {
-      const form = forms.find((f) => f.id === currentFormId);
-      if (form) {
-        const { id: _id, ...rest } = form;
-        await api.updateForm({ id: currentFormId, ...rest, ...updates });
-      }
+      const form = forms.find((f) => f.id === curId);
+      if (form) { const { id: _id, ...rest } = form; await api.updateForm({ id: curId, ...rest, ...updates }); }
       setSaving(false);
     }, 800);
+  };
+
+  const handleUpdateFormById = (id: string, updates: Partial<Form>) => {
+    setForms((p) => p.map((f) => (f.id === id ? { ...f, ...updates } : f)));
+    setTimeout(async () => {
+      const form = forms.find((f) => f.id === id);
+      if (form) { const { id: _id, ...rest } = form; await api.updateForm({ id, ...rest, ...updates }); }
+    }, 300);
   };
 
   const handleDeleteForm = async (id: string) => {
@@ -90,95 +89,61 @@ export default function LegalFormsPage() {
     showToast("Formulário excluído");
   };
 
-  // --- Loading state ---
-  if (loading) {
-    return (
-      <>
-        <Topbar page="dashboard" onBack={() => {}} />
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "calc(100vh - 56px)" }}>
-          <div style={{ textAlign: "center" }}>
-            <div className="spinner" style={{ margin: "0 auto 16px" }} />
-            <div style={{ color: "var(--text-muted)", fontWeight: 600 }}>Carregando formulários...</div>
-          </div>
-        </div>
-      </>
-    );
-  }
+  const handleDuplicateForm = async (id: string) => {
+    const orig = forms.find((f) => f.id === id);
+    if (!orig) return;
+    const fields = orig.fields.map((f) => ({ ...f, id: uid() }));
+    const result = await api.createForm({ name: orig.name + " (cópia)", icon: orig.icon, color: orig.color, fields, tags: orig.tags, theme: orig.theme, settings: orig.settings, status: "active", version: 1 });
+    if (result) { setForms((p) => [{ ...result, response_count: 0 }, ...p]); showToast("Formulário duplicado!"); }
+  };
+
+  const handleArchiveForm = (id: string) => {
+    const form = forms.find((f) => f.id === id);
+    const newStatus = form?.status === "archived" ? "active" : "archived";
+    handleUpdateFormById(id, { status: newStatus as any });
+    showToast(newStatus === "archived" ? "Formulário arquivado" : "Formulário restaurado");
+  };
+
+  // Loading
+  if (loading) return (
+    <>
+      <Topbar page="dashboard" onBack={() => {}} />
+      <Dashboard forms={[]} search="" onSearchChange={() => {}} onCreateForm={() => {}} onEditForm={() => {}} onFillForm={() => {}} onShareForm={() => {}} onDeleteForm={() => {}} onViewResponses={() => {}} onDuplicateForm={() => {}} onArchiveForm={() => {}} onUpdateForm={() => {}} loading={true} />
+    </>
+  );
 
   return (
     <>
-      {/* Topbar */}
-      <Topbar
-        page={page}
-        formName={page === "builder" ? currentForm?.name : undefined}
-        saving={saving}
-        onBack={() => goTo("dashboard")}
-        onPreview={() => currentFormId && goTo("fill", currentFormId)}
-        onShare={() => setShowShare(true)}
-        onCreate={() => handleCreateForm()}
-        onNameChange={(name) => handleUpdateForm({ name })}
-      />
+      <Topbar page={page} formName={page === "builder" ? curForm?.name : undefined} saving={saving}
+        onBack={() => goTo("dashboard")} onPreview={() => curId && goTo("fill", curId)} onShare={() => setShowShare(true)}
+        onCreate={() => handleCreateForm()} onNameChange={(name) => handleUpdateForm({ name })} />
 
-      {/* Pages */}
       {page === "dashboard" && (
-        <Dashboard
-          forms={forms}
-          search={search}
-          onSearchChange={setSearch}
-          onCreateForm={handleCreateForm}
-          onEditForm={(id) => goTo("builder", id)}
-          onFillForm={(id) => goTo("fill", id)}
-          onShareForm={(id) => { setCurrentFormId(id); setShowShare(true); }}
-          onDeleteForm={handleDeleteForm}
-          onViewResponses={(id) => goTo("responses", id)}
-        />
+        <Dashboard forms={forms} search={search} onSearchChange={setSearch} onCreateForm={handleCreateForm} onEditForm={(id) => goTo("builder", id)}
+          onFillForm={(id) => goTo("fill", id)} onShareForm={(id) => { setCurId(id); setShowShare(true); }} onDeleteForm={handleDeleteForm}
+          onViewResponses={(id) => goTo("responses", id)} onDuplicateForm={handleDuplicateForm} onArchiveForm={handleArchiveForm} onUpdateForm={handleUpdateFormById} />
       )}
 
-      {page === "builder" && currentForm && (
-        <Builder form={currentForm} onUpdateForm={handleUpdateForm} />
-      )}
-
-      {page === "fill" && currentForm && (
-        <FillMode
-          form={currentForm}
-          onDone={() => { goTo("done"); showToast("Formulário enviado com sucesso!"); }}
-          onBack={() => goTo("dashboard")}
-        />
-      )}
-
+      {page === "builder" && curForm && <Builder form={curForm} onUpdateForm={handleUpdateForm} />}
+      {page === "fill" && curForm && <FillMode form={curForm} onDone={() => { goTo("done"); showToast("Enviado!"); }} onBack={() => goTo("dashboard")} />}
+      
       {page === "done" && (
         <div className="done-wrap">
           <div className="done-card">
             <div className="done-icon">✅</div>
             <div className="done-title">Formulário enviado!</div>
-            <div className="done-desc">Os dados foram coletados com sucesso e serão enviados para a equipe responsável.</div>
+            <div className="done-desc">Dados coletados com sucesso.</div>
             <div style={{ display: "flex", gap: 10, justifyContent: "center", flexWrap: "wrap" }}>
               <button className="btn btn--primary" onClick={() => goTo("dashboard")}>Meus Formulários</button>
-              {currentFormId && <button className="btn" onClick={() => goTo("fill", currentFormId)}>Preencher outro</button>}
+              {curId && <button className="btn" onClick={() => goTo("fill", curId)}>Preencher outro</button>}
             </div>
           </div>
         </div>
       )}
 
-      {page === "responses" && currentForm && (
-        <Responses form={currentForm} onBack={() => goTo("dashboard")} />
-      )}
-
-      {/* Modals */}
-      {showShare && currentForm && (
-        <ShareModal
-          form={currentForm}
-          onClose={() => setShowShare(false)}
-          onUpdateEmails={(emails) => handleUpdateForm({ emails })}
-        />
-      )}
-
-      {/* Toast */}
-      {toast && (
-        <div className="toast-container">
-          <div className="toast">{toast}</div>
-        </div>
-      )}
+      {page === "responses" && curForm && <Responses form={curForm} onBack={() => goTo("dashboard")} />}
+      {showShare && curForm && <ShareModal form={curForm} onClose={() => setShowShare(false)} onUpdateEmails={(emails) => handleUpdateForm({ emails })} />}
+      {toast && <div className="toast-container"><div className="toast">{toast}</div></div>}
     </>
   );
 }

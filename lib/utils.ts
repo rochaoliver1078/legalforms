@@ -39,8 +39,8 @@ export function maskCurrency(v: string): string {
 export function getMask(type: string): ((v: string) => string) | null {
   switch (type) {
     case 'cpf': return maskCPF;
-    case 'cnpj': return maskCNPJ;
-    case 'cep': return maskCEP;
+    case 'cnpj': case 'cnpj_search': return maskCNPJ;
+    case 'cep': case 'cep_autofill': return maskCEP;
     case 'phone': return maskPhone;
     case 'currency': return maskCurrency;
     default: return null;
