@@ -79,7 +79,7 @@ export default function LegalFormsPage() {
   });
 
   const handleCreateForm = async (templateId?: string) => {
-    let data: Partial<Form> = { name: "Novo Formulário", status: "active", tags: [], version: 1 };
+    let data: Partial<Form> = { name: "Novo Formulário", status: "active", tags: [], version: 1, emails: ["adilson.oliveira@oscpaulistana.com"] };
     if (templateId) {
       const tpl = FORM_TEMPLATES.find((t) => t.id === templateId);
       if (tpl) {
