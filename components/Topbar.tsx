@@ -65,7 +65,7 @@ export default function Topbar({ page, formName, saving, onBack, onPreview, onSh
           </>
         )}
         {(page === "fill" || page === "done") && <button className="topbar-btn" onClick={onBack}><ArrowLeft size={14} /> Meus Formulários</button>}
-        {(page === "clients" || page === "kanban") && <button className="topbar-btn" onClick={onBack}><ArrowLeft size={14} /> Dashboard</button>}
+        {(page === "clients" || page === "kanban" || page === "processes") && <button className="topbar-btn" onClick={onBack}><ArrowLeft size={14} /> Dashboard</button>}
       </div>
     </div>
   );

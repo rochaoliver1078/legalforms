@@ -322,9 +322,23 @@ export default function Processes({ onBack, forms }: ProcessesProps) {
           <h2 className="dashboard-title">⚖️ Processos</h2>
         </div>
         <div className="dashboard-actions">
-          <div className="view-toggle">
-            <button className={tab === "processes" ? "active" : ""} onClick={() => setTab("processes")}><ClipboardList size={16} /></button>
-            <button className={tab === "templates" ? "active" : ""} onClick={() => setTab("templates")}><FileText size={16} /></button>
+          <div style={{ display: "flex", gap: 2, background: "var(--bg-page)", borderRadius: "var(--radius-md)", padding: 3 }}>
+            <button
+              onClick={() => setTab("processes")}
+              style={{ padding: "6px 14px", borderRadius: "var(--radius-sm)", border: "none", cursor: "pointer", fontWeight: 700, fontSize: 13, transition: "all .15s",
+                background: tab === "processes" ? "var(--bg-card)" : "transparent",
+                color: tab === "processes" ? "var(--text-primary)" : "var(--text-muted)",
+                boxShadow: tab === "processes" ? "var(--shadow-sm)" : "none"
+              }}
+            ><ClipboardList size={14} style={{ marginRight: 6, verticalAlign: "middle" }} />Processos</button>
+            <button
+              onClick={() => setTab("templates")}
+              style={{ padding: "6px 14px", borderRadius: "var(--radius-sm)", border: "none", cursor: "pointer", fontWeight: 700, fontSize: 13, transition: "all .15s",
+                background: tab === "templates" ? "var(--bg-card)" : "transparent",
+                color: tab === "templates" ? "var(--text-primary)" : "var(--text-muted)",
+                boxShadow: tab === "templates" ? "var(--shadow-sm)" : "none"
+              }}
+            ><FileText size={14} style={{ marginRight: 6, verticalAlign: "middle" }} />Modelos</button>
           </div>
           <div className="search-box"><Search size={16} /><input placeholder="Buscar..." value={search} onChange={e => setSearch(e.target.value)} /></div>
           {tab === "processes" && <button className="btn btn--primary" onClick={() => setShowNewProcess(true)}><Plus size={16} /> Novo Processo</button>}
@@ -340,6 +354,12 @@ export default function Processes({ onBack, forms }: ProcessesProps) {
               <div style={{ fontSize: 48, marginBottom: 12, opacity: .5 }}>⚖️</div>
               <div style={{ fontWeight: 700, fontSize: 16 }}>Nenhum processo</div>
               <div style={{ fontSize: 13, marginTop: 4 }}>Crie um novo processo para começar</div>
+              {templates.length === 0 && (
+                <div style={{ marginTop: 16 }}>
+                  <div style={{ fontSize: 12, color: "var(--warning)", marginBottom: 8 }}>⚠️ Primeiro crie modelos de processo</div>
+                  <button className="btn btn--primary" onClick={() => { setTab("templates"); }}><FileText size={14} /> Ir para Modelos</button>
+                </div>
+              )}
             </div>
           ) : (
             <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
