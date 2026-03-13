@@ -48,6 +48,8 @@ export async function POST(req: NextRequest) {
 
     const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://legalforms.vercel.app";
 
+    console.log("[LegalForms] Sending notification email to:", form.emails);
+
     sendNotification({
       to: form.emails,
       formName: form.name,
@@ -55,7 +57,17 @@ export async function POST(req: NextRequest) {
       submittedAt: new Date().toLocaleString("pt-BR", { timeZone: "America/Sao_Paulo" }),
       previewData: preview,
       formUrl: `${appUrl}`,
-    }).catch(console.error); // Don't block on email failure
+    }).then(result => {
+      if (result.success) {
+        console.log("[LegalForms] ✅ Email sent successfully, id:", result.id);
+      } else {
+        console.error("[LegalForms] ❌ Email failed:", result.error);
+      }
+    }).catch(err => {
+      console.error("[LegalForms] ❌ Email error:", err);
+    });
+  } else {
+    console.log("[LegalForms] No notification emails configured for form:", form?.name);
   }
 
   return NextResponse.json(submission, { status: 201 });
