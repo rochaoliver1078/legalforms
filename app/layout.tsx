@@ -20,6 +20,15 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       </head>
       <body>
         {children}
+        <footer style={{
+          textAlign: "center",
+          padding: "16px 20px",
+          fontSize: 12,
+          color: "#bbb",
+          letterSpacing: ".3px",
+        }}>
+          Desenvolvido por Adilson Rocha
+        </footer>
       </body>
     </html>
   );
