@@ -1,5 +1,5 @@
 "use client";
-import { Save, Eye, Share2, Plus, ArrowLeft, Loader2, Building2, LayoutDashboard, Bell, ChevronRight } from "lucide-react";
+import { Save, Eye, Share2, Plus, ArrowLeft, Loader2, Building2, LayoutDashboard, ChevronRight, ClipboardList } from "lucide-react";
 
 interface TopbarProps {
   page: string;
@@ -12,6 +12,7 @@ interface TopbarProps {
   onNameChange?: (name: string) => void;
   onClients?: () => void;
   onKanban?: () => void;
+  onProcesses?: () => void;
   newSubsCount?: number;
 }
 
@@ -23,9 +24,10 @@ const PAGE_LABELS: Record<string, string> = {
   responses: "Respostas",
   clients: "Clientes",
   kanban: "Kanban",
+  processes: "Processos",
 };
 
-export default function Topbar({ page, formName, saving, onBack, onPreview, onShare, onCreate, onNameChange, onClients, onKanban, newSubsCount }: TopbarProps) {
+export default function Topbar({ page, formName, saving, onBack, onPreview, onShare, onCreate, onNameChange, onClients, onKanban, onProcesses, newSubsCount }: TopbarProps) {
   return (
     <div className="topbar">
       <div className="topbar-brand" onClick={onBack}>
@@ -55,6 +57,7 @@ export default function Topbar({ page, formName, saving, onBack, onPreview, onSh
           <>
             <button className="topbar-btn" onClick={onClients}><Building2 size={14} /> Clientes</button>
             <button className="topbar-btn" onClick={onKanban}><LayoutDashboard size={14} /> Kanban</button>
+            <button className="topbar-btn" onClick={onProcesses}><ClipboardList size={14} /> Processos</button>
             {(newSubsCount || 0) > 0 && (
               <span className="topbar-badge">{newSubsCount}</span>
             )}

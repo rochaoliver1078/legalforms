@@ -211,3 +211,98 @@ export const PROCESS_STATUS_COLORS: Record<ProcessStatus, string> = {
   filed: '#06b6d4',
   completed: '#10b981',
 };
+
+// v4 — Process Control
+export type ProcessPriority = 'baixa' | 'normal' | 'urgente';
+
+export interface ProcessTemplate {
+  id: string;
+  name: string;
+  icon: string;
+  color: string;
+  stages: string[];
+  documents: string[];
+  form_ids: string[];
+  created_at: string;
+}
+
+export interface ProcessDocument {
+  name: string;
+  received: boolean;
+  file_url?: string;
+}
+
+export interface LegalProcess {
+  id: string;
+  template_id?: string;
+  title: string;
+  current_stage: number;
+  stages: string[];
+  priority: ProcessPriority;
+  client_id?: string;
+  company_id?: string;
+  deadline?: string;
+  notes?: string;
+  documents: ProcessDocument[];
+  created_at: string;
+  updated_at: string;
+  // Joined
+  template?: ProcessTemplate;
+  client?: Client;
+  company?: Company;
+}
+
+export interface ProcessEvent {
+  id: string;
+  process_id: string;
+  type: 'stage_change' | 'note' | 'document' | 'notification' | 'created';
+  description: string;
+  created_at: string;
+}
+
+export const PRIORITY_LABELS: Record<ProcessPriority, string> = {
+  baixa: 'Baixa',
+  normal: 'Normal',
+  urgente: 'Urgente',
+};
+
+export const PRIORITY_COLORS: Record<ProcessPriority, string> = {
+  baixa: '#10b981',
+  normal: '#3b82f6',
+  urgente: '#ef4444',
+};
+
+export const DEFAULT_PROCESS_TEMPLATES: Omit<ProcessTemplate, 'id' | 'created_at'>[] = [
+  {
+    name: 'Abertura MEI',
+    icon: '🏪',
+    color: '#10b981',
+    stages: ['Coleta de docs', 'Análise', 'Protocolo', 'Deferido'],
+    documents: ['RG', 'CPF', 'Comprovante de endereço', 'Título de eleitor'],
+    form_ids: [],
+  },
+  {
+    name: 'Abertura LTDA / SLU',
+    icon: '🏢',
+    color: '#3b82f6',
+    stages: ['Coleta de docs', 'Contrato social', 'Junta Comercial', 'Receita Federal', 'Concluído'],
+    documents: ['RG dos sócios', 'CPF dos sócios', 'Comprovante de endereço', 'IPTU', 'Contrato social'],
+    form_ids: [],
+  },
+  {
+    name: 'Alteração Contratual',
+    icon: '📝',
+    color: '#8b5cf6',
+    stages: ['Coleta de docs', 'Análise', 'Junta Comercial', 'Concluído'],
+    documents: ['Contrato social vigente', 'Alteração contratual', 'RG dos sócios'],
+    form_ids: [],
+  },
+  {
+    name: 'Baixa / Encerramento',
+    icon: '📕',
+    color: '#ef4444',
+    stages: ['Coleta de docs', 'Distrato', 'Protocolo', 'Concluído'],
+    documents: ['Certidão negativa de débitos', 'Alvará original', 'Distrato social'],
+    form_ids: [],
+  },
+];

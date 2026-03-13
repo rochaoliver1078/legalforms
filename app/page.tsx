@@ -11,6 +11,7 @@ import ShareModal from "@/components/ShareModal";
 import Responses from "@/components/Responses";
 import Clients from "@/components/Clients";
 import Kanban from "@/components/Kanban";
+import Processes from "@/components/Processes";
 
 const api = {
   async getForms(): Promise<Form[]> { const r = await fetch("/api/forms"); return r.ok ? r.json() : []; },
@@ -30,7 +31,7 @@ const api = {
   }
 };
 
-type Page = "dashboard" | "builder" | "fill" | "done" | "responses" | "clients" | "kanban";
+type Page = "dashboard" | "builder" | "fill" | "done" | "responses" | "clients" | "kanban" | "processes";
 
 export default function LegalFormsPage() {
   const [page, setPage] = useState<Page>("dashboard");
@@ -44,6 +45,7 @@ export default function LegalFormsPage() {
   const [newSubsCount, setNewSubsCount] = useState(0);
   const [clients, setClients] = useState<Client[]>([]);
   const [companyCount, setCompanyCount] = useState(0);
+  const [processCount, setProcessCount] = useState(0);
 
   const curForm = forms.find((f) => f.id === curId) || null;
   let saveTimer: ReturnType<typeof setTimeout> | null = null;
@@ -57,16 +59,18 @@ export default function LegalFormsPage() {
       api.getNewSubmissionsCount(),
       fetch("/api/clients").then(r => r.json()).catch(() => []),
       fetch("/api/companies").then(r => r.json()).catch(() => []),
+      fetch("/api/processes").then(r => r.json()).catch(() => []),
     ])
-      .then(([f, count, cl, co]) => {
+      .then(([f, count, cl, co, pr]) => {
         setForms(Array.isArray(f) ? f : []);
         setNewSubsCount(count);
         setClients(Array.isArray(cl) ? cl : []);
         setCompanyCount(Array.isArray(co) ? co.length : 0);
+        setProcessCount(Array.isArray(pr) ? pr.length : 0);
         setLoading(false);
       })
       .catch(() => setLoading(false));
-  }, []);
+  }, []);;
 
   // Keyboard shortcuts
   useEffect(() => {
@@ -145,8 +149,8 @@ export default function LegalFormsPage() {
     <>
       <Topbar page={page} formName={page === "builder" ? curForm?.name : undefined} saving={saving}
         onBack={() => goTo("dashboard")} onPreview={() => curId && goTo("fill", curId)} onShare={() => setShowShare(true)}
-        onCreate={() => handleCreateForm()} onNameChange={(name) => handleUpdateForm({ name })}
-        onClients={() => goTo("clients")} onKanban={() => goTo("kanban")} newSubsCount={newSubsCount} />
+        onCreate={() => goTo("dashboard")} onNameChange={(name) => curForm && handleUpdateForm({ name })}
+        onClients={() => goTo("clients")} onKanban={() => goTo("kanban")} onProcesses={() => goTo("processes")} newSubsCount={newSubsCount} />
 
       {page === "dashboard" && (
         <Dashboard forms={forms} search={search} onSearchChange={setSearch} onCreateForm={handleCreateForm} onEditForm={(id) => goTo("builder", id)}
@@ -176,6 +180,7 @@ export default function LegalFormsPage() {
       {page === "responses" && curForm && <Responses form={curForm} onBack={() => goTo("dashboard")} />}
       {page === "clients" && <Clients onBack={() => goTo("dashboard")} forms={forms} onViewForm={(id) => goTo("responses", id)} />}
       {page === "kanban" && <Kanban onBack={() => goTo("dashboard")} onSelectClient={() => goTo("clients")} forms={forms} onCreateClient={() => goTo("clients")} />}
+      {page === "processes" && <Processes onBack={() => goTo("dashboard")} forms={forms} />}
       {showShare && curForm && <ShareModal form={curForm} onClose={() => setShowShare(false)} onUpdateEmails={(emails) => handleUpdateForm({ emails })} clients={clients} />}
       {toast && <div className="toast-container"><div className="toast">{toast}</div></div>}
     </>
