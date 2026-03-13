@@ -1507,3 +1507,202 @@ textarea.input { min-height: 80px; resize: vertical; }
   .kanban-column { min-width: 100%; }
   .client-info-grid { grid-template-columns: 1fr; }
 }
+
+/* ============ MODAL SECTIONS (Client Form) ============ */
+.modal-section {
+  margin-bottom: 20px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--border-light);
+}
+.modal-section:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+
+.modal-section-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--primary);
+  text-transform: uppercase;
+  letter-spacing: .5px;
+  margin-bottom: 14px;
+  padding-bottom: 8px;
+  border-bottom: 2px solid var(--primary-bg);
+}
+
+/* ============ INPUT WITH STATUS (CNPJ/CEP lookup) ============ */
+.input-with-status {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.input-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: var(--radius-full);
+  width: fit-content;
+  animation: fadeIn .2s var(--ease);
+}
+
+.input-status--loading {
+  color: var(--info);
+  background: var(--info-bg);
+}
+
+.input-status--success {
+  color: var(--success);
+  background: var(--success-bg);
+}
+
+.input-status--error {
+  color: var(--danger);
+  background: var(--danger-bg);
+}
+
+/* Spin animation for loader */
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+.spin { animation: spin .8s linear infinite; }
+
+/* ============ STATS GRID (Dashboard) ============ */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 16px;
+  margin-bottom: 28px;
+}
+
+.stat-card-lg {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  transition: all .2s var(--ease);
+  position: relative;
+  overflow: hidden;
+  animation: staggerIn .4s var(--ease-bounce) both;
+}
+.stat-card-lg::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, transparent, var(--primary), transparent);
+  opacity: 0;
+  transition: opacity .2s var(--ease);
+}
+.stat-card-lg:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-lg);
+}
+.stat-card-lg:hover::after { opacity: 1; }
+
+.stat-card-lg-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.stat-card-lg-value {
+  font-size: 32px;
+  font-weight: 900;
+  letter-spacing: -1px;
+  line-height: 1;
+  color: var(--text-primary);
+}
+
+.stat-card-lg-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+@keyframes staggerIn {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* ============ TOPBAR BREADCRUMB ============ */
+.topbar-breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  opacity: .85;
+}
+.topbar-breadcrumb-sep {
+  opacity: .5;
+  font-size: 11px;
+}
+.topbar-breadcrumb-item {
+  cursor: pointer;
+  transition: opacity .15s;
+}
+.topbar-breadcrumb-item:hover { opacity: .7; }
+.topbar-breadcrumb-current {
+  font-weight: 700;
+  opacity: 1;
+}
+
+/* ============ NOTIFICATION BADGE ============ */
+.topbar-badge {
+  position: relative;
+  background: #fff;
+  color: var(--primary);
+  font-size: 11px;
+  font-weight: 800;
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
+  animation: badgePulse 2s ease-in-out infinite;
+}
+
+@keyframes badgePulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(255,255,255,.4); }
+  50% { box-shadow: 0 0 0 6px rgba(255,255,255,0); }
+}
+
+/* ============ REMINDER BUTTON ============ */
+.reminder-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 12px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--primary-border);
+  background: var(--primary-bg);
+  color: var(--primary);
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all .15s var(--ease);
+  white-space: nowrap;
+}
+.reminder-btn:hover {
+  background: var(--primary);
+  color: #fff;
+  border-color: var(--primary);
+}
+

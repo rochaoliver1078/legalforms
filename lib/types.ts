@@ -130,20 +130,65 @@ export interface HistoryEntry {
 
 // v3 — Client Panel
 export type ProcessStatus = 'pending' | 'docs_received' | 'analyzing' | 'filed' | 'completed';
+export type CompanyRole = 'socio' | 'contador' | 'responsavel' | 'outro';
 
+// Client = pessoa física
 export interface Client {
   id: string;
   name: string;
-  cnpj?: string;
   cpf?: string;
   email: string;
   phone?: string;
   contact_name?: string;
   notes?: string;
+  // Personal address
+  cep?: string;
+  logradouro?: string;
+  numero?: string;
+  complemento?: string;
+  bairro?: string;
+  cidade?: string;
+  uf?: string;
   process_status: ProcessStatus;
   created_at: string;
   updated_at: string;
 }
+
+// Company = pessoa jurídica
+export interface Company {
+  id: string;
+  razao_social: string;
+  nome_fantasia?: string;
+  cnpj: string;
+  cnae_fiscal?: string;
+  situacao_cadastral?: string;
+  // Company address
+  cep?: string;
+  logradouro?: string;
+  numero?: string;
+  complemento?: string;
+  bairro?: string;
+  cidade?: string;
+  uf?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+// Link N:N between Client and Company
+export interface ClientCompany {
+  id: string;
+  client_id: string;
+  company_id: string;
+  role: CompanyRole;
+  created_at: string;
+}
+
+export const COMPANY_ROLE_LABELS: Record<CompanyRole, string> = {
+  socio: 'Sócio',
+  contador: 'Contador',
+  responsavel: 'Responsável',
+  outro: 'Outro',
+};
 
 export interface ClientSubmission {
   client_id: string;

@@ -42,6 +42,8 @@ export default function LegalFormsPage() {
   const [showShare, setShowShare] = useState(false);
   const [toast, setToast] = useState("");
   const [newSubsCount, setNewSubsCount] = useState(0);
+  const [clients, setClients] = useState<Client[]>([]);
+  const [companyCount, setCompanyCount] = useState(0);
 
   const curForm = forms.find((f) => f.id === curId) || null;
   let saveTimer: ReturnType<typeof setTimeout> | null = null;
@@ -50,8 +52,19 @@ export default function LegalFormsPage() {
   const goTo = (pg: Page, id?: string) => { setPage(pg); if (id) setCurId(id); };
 
   useEffect(() => {
-    Promise.all([api.getForms(), api.getNewSubmissionsCount()])
-      .then(([f, count]) => { setForms(Array.isArray(f) ? f : []); setNewSubsCount(count); setLoading(false); })
+    Promise.all([
+      api.getForms(),
+      api.getNewSubmissionsCount(),
+      fetch("/api/clients").then(r => r.json()).catch(() => []),
+      fetch("/api/companies").then(r => r.json()).catch(() => []),
+    ])
+      .then(([f, count, cl, co]) => {
+        setForms(Array.isArray(f) ? f : []);
+        setNewSubsCount(count);
+        setClients(Array.isArray(cl) ? cl : []);
+        setCompanyCount(Array.isArray(co) ? co.length : 0);
+        setLoading(false);
+      })
       .catch(() => setLoading(false));
   }, []);
 
@@ -138,7 +151,9 @@ export default function LegalFormsPage() {
       {page === "dashboard" && (
         <Dashboard forms={forms} search={search} onSearchChange={setSearch} onCreateForm={handleCreateForm} onEditForm={(id) => goTo("builder", id)}
           onFillForm={(id) => goTo("fill", id)} onShareForm={(id) => { setCurId(id); setShowShare(true); }} onDeleteForm={handleDeleteForm}
-          onViewResponses={(id) => goTo("responses", id)} onDuplicateForm={handleDuplicateForm} onArchiveForm={handleArchiveForm} onUpdateForm={handleUpdateFormById} />
+          onViewResponses={(id) => goTo("responses", id)} onDuplicateForm={handleDuplicateForm} onArchiveForm={handleArchiveForm} onUpdateForm={handleUpdateFormById}
+          clientCount={clients.length} companyCount={companyCount} newSubsCount={newSubsCount}
+          onGoClients={() => goTo("clients")} onGoKanban={() => goTo("kanban")} />
       )}
 
       {page === "builder" && curForm && <Builder form={curForm} onUpdateForm={handleUpdateForm} />}
@@ -160,8 +175,8 @@ export default function LegalFormsPage() {
 
       {page === "responses" && curForm && <Responses form={curForm} onBack={() => goTo("dashboard")} />}
       {page === "clients" && <Clients onBack={() => goTo("dashboard")} forms={forms} onViewForm={(id) => goTo("responses", id)} />}
-      {page === "kanban" && <Kanban onBack={() => goTo("dashboard")} onSelectClient={() => goTo("clients")} />}
-      {showShare && curForm && <ShareModal form={curForm} onClose={() => setShowShare(false)} onUpdateEmails={(emails) => handleUpdateForm({ emails })} />}
+      {page === "kanban" && <Kanban onBack={() => goTo("dashboard")} onSelectClient={() => goTo("clients")} forms={forms} onCreateClient={() => goTo("clients")} />}
+      {showShare && curForm && <ShareModal form={curForm} onClose={() => setShowShare(false)} onUpdateEmails={(emails) => handleUpdateForm({ emails })} clients={clients} />}
       {toast && <div className="toast-container"><div className="toast">{toast}</div></div>}
     </>
   );

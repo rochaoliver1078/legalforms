@@ -2,7 +2,8 @@
 import { useState, useMemo } from "react";
 import {
   Search, Edit3, Eye, Share2, Trash2, Plus, LayoutGrid, List, FileText, BarChart3,
-  Inbox, FolderOpen, Tag, Archive, Copy, ChevronDown, CheckSquare, Square, Folder, X
+  Inbox, FolderOpen, Tag, Archive, Copy, ChevronDown, CheckSquare, Square, Folder, X,
+  Users, Building2, TrendingUp
 } from "lucide-react";
 import { Form, FormFolder } from "@/lib/types";
 import { FORM_TEMPLATES } from "@/lib/field-definitions";
@@ -22,11 +23,17 @@ interface DashboardProps {
   onArchiveForm: (id: string) => void;
   onUpdateForm: (id: string, updates: Partial<Form>) => void;
   loading?: boolean;
+  clientCount?: number;
+  companyCount?: number;
+  newSubsCount?: number;
+  onGoClients?: () => void;
+  onGoKanban?: () => void;
 }
 
 export default function Dashboard({
   forms, search, onSearchChange, onCreateForm, onEditForm, onFillForm, onShareForm,
-  onDeleteForm, onViewResponses, onDuplicateForm, onArchiveForm, onUpdateForm, loading
+  onDeleteForm, onViewResponses, onDuplicateForm, onArchiveForm, onUpdateForm, loading,
+  clientCount = 0, companyCount = 0, newSubsCount = 0, onGoClients, onGoKanban
 }: DashboardProps) {
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [showTemplates, setShowTemplates] = useState(false);
@@ -101,8 +108,34 @@ export default function Dashboard({
     </div>
   );
 
+  const activeForms = forms.filter(f => f.status !== "archived").length;
+
   return (
     <div className="dashboard">
+      {/* Stats Cards */}
+      <div className="stats-grid">
+        <div className="stat-card-lg" onClick={onGoClients} style={{ cursor: onGoClients ? "pointer" : "default", animationDelay: "0s" }}>
+          <div className="stat-card-lg-icon" style={{ background: "#eff6ff", color: "#3b82f6" }}><Users size={22} /></div>
+          <div className="stat-card-lg-value">{clientCount}</div>
+          <div className="stat-card-lg-label">Clientes</div>
+        </div>
+        <div className="stat-card-lg" onClick={onGoClients} style={{ cursor: onGoClients ? "pointer" : "default", animationDelay: ".05s" }}>
+          <div className="stat-card-lg-icon" style={{ background: "#f0fdf4", color: "#10b981" }}><Building2 size={22} /></div>
+          <div className="stat-card-lg-value">{companyCount}</div>
+          <div className="stat-card-lg-label">Empresas</div>
+        </div>
+        <div className="stat-card-lg" style={{ animationDelay: ".1s" }}>
+          <div className="stat-card-lg-icon" style={{ background: "#fff8f0", color: "#FF6100" }}><FileText size={22} /></div>
+          <div className="stat-card-lg-value">{activeForms}</div>
+          <div className="stat-card-lg-label">Formulários ativos</div>
+        </div>
+        <div className="stat-card-lg" onClick={onGoKanban} style={{ cursor: onGoKanban ? "pointer" : "default", animationDelay: ".15s" }}>
+          <div className="stat-card-lg-icon" style={{ background: "#faf5ff", color: "#8b5cf6" }}><TrendingUp size={22} /></div>
+          <div className="stat-card-lg-value">{newSubsCount}</div>
+          <div className="stat-card-lg-label">Respostas 24h</div>
+        </div>
+      </div>
+
       {/* Templates */}
       {(forms.length === 0 || showTemplates) && (
         <div className="templates-section">

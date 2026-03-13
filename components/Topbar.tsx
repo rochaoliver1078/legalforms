@@ -1,5 +1,5 @@
 "use client";
-import { Save, Eye, Share2, Plus, ArrowLeft, Loader2, Building2, LayoutDashboard, Bell } from "lucide-react";
+import { Save, Eye, Share2, Plus, ArrowLeft, Loader2, Building2, LayoutDashboard, Bell, ChevronRight } from "lucide-react";
 
 interface TopbarProps {
   page: string;
@@ -15,6 +15,16 @@ interface TopbarProps {
   newSubsCount?: number;
 }
 
+const PAGE_LABELS: Record<string, string> = {
+  dashboard: "Dashboard",
+  builder: "Editor",
+  fill: "Preencher",
+  done: "Enviado",
+  responses: "Respostas",
+  clients: "Clientes",
+  kanban: "Kanban",
+};
+
 export default function Topbar({ page, formName, saving, onBack, onPreview, onShare, onCreate, onNameChange, onClients, onKanban, newSubsCount }: TopbarProps) {
   return (
     <div className="topbar">
@@ -22,9 +32,15 @@ export default function Topbar({ page, formName, saving, onBack, onPreview, onSh
         <span style={{ fontSize: 22 }}>📋</span> LegalForms
       </div>
       <div className="topbar-center">
-        {page === "builder" && formName !== undefined && (
+        {page === "builder" && formName !== undefined ? (
           <input className="topbar-input" value={formName} onChange={(e) => onNameChange?.(e.target.value)} placeholder="Nome do formulário" />
-        )}
+        ) : page !== "dashboard" ? (
+          <div className="topbar-breadcrumb">
+            <span className="topbar-breadcrumb-item" onClick={onBack}>Dashboard</span>
+            <ChevronRight size={12} className="topbar-breadcrumb-sep" />
+            <span className="topbar-breadcrumb-current">{PAGE_LABELS[page] || page}</span>
+          </div>
+        ) : null}
       </div>
       <div className="topbar-right">
         {page === "builder" && (

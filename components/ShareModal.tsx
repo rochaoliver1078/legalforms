@@ -1,18 +1,21 @@
 "use client";
-import { useState } from "react";
-import { Link2, Copy, X, Check, Mail, QrCode } from "lucide-react";
-import { Form } from "@/lib/types";
+import { useState, useEffect } from "react";
+import { Link2, Copy, X, Check, Mail, QrCode, Users, Send, Phone } from "lucide-react";
+import { Form, Client } from "@/lib/types";
 import { QRCodeSVG } from "qrcode.react";
 
 interface ShareModalProps {
   form: Form;
   onClose: () => void;
   onUpdateEmails: (emails: string[]) => void;
+  clients?: Client[];
 }
 
-export default function ShareModal({ form, onClose, onUpdateEmails }: ShareModalProps) {
+export default function ShareModal({ form, onClose, onUpdateEmails, clients = [] }: ShareModalProps) {
   const [copied, setCopied] = useState(false);
   const [showQR, setShowQR] = useState(false);
+  const [showClients, setShowClients] = useState(false);
+  const [clientSearch, setClientSearch] = useState("");
   const appUrl = typeof window !== "undefined" ? window.location.origin : "https://legalforms.vercel.app";
   const shareLink = `${appUrl}/f/${form.id}`;
   const shareWpp = encodeURIComponent(`Olá! Preencha este formulário:\n📋 *${form.name}*\n🔗 ${shareLink}`);
@@ -24,14 +27,33 @@ export default function ShareModal({ form, onClose, onUpdateEmails }: ShareModal
     setTimeout(() => setCopied(false), 2000);
   };
 
+  const filteredClients = clients.filter(c => {
+    if (!clientSearch) return true;
+    return c.name.toLowerCase().includes(clientSearch.toLowerCase()) ||
+      (c.email || "").toLowerCase().includes(clientSearch.toLowerCase()) ||
+      (c.phone || "").includes(clientSearch);
+  });
+
+  const sendToClientWpp = (client: Client) => {
+    const phone = (client.phone || "").replace(/\D/g, "");
+    const msg = encodeURIComponent(`Olá ${client.name}! Preencha este formulário:\n📋 *${form.name}*\n🔗 ${shareLink}`);
+    window.open(`https://wa.me/55${phone}?text=${msg}`, "_blank");
+  };
+
+  const sendToClientMail = (client: Client) => {
+    const subject = encodeURIComponent(form.name);
+    const body = encodeURIComponent(`Olá ${client.name}!\n\nPreencha o formulário abaixo:\n📋 ${form.name}\n🔗 ${shareLink}\n\nObrigado!`);
+    window.open(`mailto:${client.email}?subject=${subject}&body=${body}`, "_blank");
+  };
+
   return (
     <div className="modal-backdrop" onClick={onClose}>
-      <div className="modal" onClick={(e) => e.stopPropagation()} style={{ maxWidth: 500 }}>
+      <div className="modal" onClick={(e) => e.stopPropagation()} style={{ maxWidth: 520 }}>
         <div className="modal-header">
           <h3>Compartilhar Formulário</h3>
           <button className="btn btn--icon btn--ghost" onClick={onClose}><X size={18} /></button>
         </div>
-        <div className="modal-body">
+        <div className="modal-body" style={{ maxHeight: "75vh", overflowY: "auto" }}>
           {/* Share Link */}
           <div className="share-link">
             <Link2 size={16} style={{ color: "var(--text-muted)", flexShrink: 0 }} />
@@ -62,8 +84,54 @@ export default function ShareModal({ form, onClose, onUpdateEmails }: ShareModal
             </div>
           )}
 
+          {/* ── Send to Client ─────────────────────────────────── */}
+          {clients.length > 0 && (
+            <div className="share-email-config" style={{ marginTop: 16 }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
+                <div>
+                  <div style={{ fontSize: 13, fontWeight: 700 }}>📤 Enviar para cliente</div>
+                  <div style={{ fontSize: 12, color: "var(--text-muted)" }}>Envie diretamente para um cliente cadastrado</div>
+                </div>
+                <button className="btn btn--sm" onClick={() => setShowClients(!showClients)}>
+                  <Users size={14} /> {showClients ? "Fechar" : "Escolher"}
+                </button>
+              </div>
+              {showClients && (
+                <div>
+                  <input className="input" value={clientSearch} onChange={e => setClientSearch(e.target.value)} placeholder="Buscar cliente..." style={{ marginBottom: 8, fontSize: 13 }} />
+                  <div style={{ maxHeight: 200, overflowY: "auto", borderRadius: "var(--radius-md)", border: "1px solid var(--border-light)" }}>
+                    {filteredClients.map(c => (
+                      <div key={c.id} style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 12px", borderBottom: "1px solid var(--border-light)", fontSize: 13 }}>
+                        <div style={{ width: 32, height: 32, borderRadius: "50%", background: "var(--primary-bg)", color: "var(--primary)", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 800, fontSize: 14, flexShrink: 0 }}>
+                          {c.name.charAt(0).toUpperCase()}
+                        </div>
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <div style={{ fontWeight: 700 }}>{c.name}</div>
+                          <div style={{ fontSize: 11, color: "var(--text-muted)" }}>{c.email || c.phone || "Sem contato"}</div>
+                        </div>
+                        <div style={{ display: "flex", gap: 4 }}>
+                          {c.phone && (
+                            <button className="btn btn--icon-sm" style={{ background: "#25d366", color: "#fff", borderColor: "#25d366", borderRadius: "var(--radius-sm)" }} onClick={() => sendToClientWpp(c)} title="WhatsApp">
+                              <Send size={12} />
+                            </button>
+                          )}
+                          {c.email && (
+                            <button className="btn btn--icon-sm" style={{ background: "var(--info)", color: "#fff", borderColor: "var(--info)", borderRadius: "var(--radius-sm)" }} onClick={() => sendToClientMail(c)} title="E-mail">
+                              <Mail size={12} />
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                    {filteredClients.length === 0 && <div style={{ textAlign: "center", padding: 20, color: "var(--text-muted)", fontSize: 12 }}>Nenhum cliente encontrado</div>}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
           {/* Notification Emails */}
-          <div className="share-email-config">
+          <div className="share-email-config" style={{ marginTop: 12 }}>
             <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 4 }}>📬 Notificações de resposta</div>
             <div style={{ fontSize: 12, color: "var(--text-muted)", marginBottom: 8 }}>E-mails que receberão aviso quando alguém preencher</div>
             <input
